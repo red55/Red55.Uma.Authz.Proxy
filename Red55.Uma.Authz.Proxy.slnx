@@ -15,7 +15,6 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
-    <File Path="nuget.config" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj">
