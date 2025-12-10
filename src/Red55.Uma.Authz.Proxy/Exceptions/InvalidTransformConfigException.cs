@@ -1,7 +1,7 @@
 ﻿
 namespace Red55.Uma.Authz.Proxy.Exceptions;
 
-public class InvalidTransformConfigException : Yunqi.Common.Exceptions.YunqiException
+public class InvalidTransformConfigException : Exception
 {
     public InvalidTransformConfigException()
     {
