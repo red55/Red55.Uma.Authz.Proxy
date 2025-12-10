@@ -22,7 +22,7 @@ jobs:
       - name: meta
         uses: docker/metadata-action@v5.7.0
         with:
-          images: red55/mm-uma-authz-proxy
+          images: red55/uma-authz-proxy
           tags: |
             type=raw,value=latest
             type=semver,pattern={{version}}
