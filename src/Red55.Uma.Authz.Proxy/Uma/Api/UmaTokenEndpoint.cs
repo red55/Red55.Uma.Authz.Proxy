@@ -8,7 +8,7 @@ using Refit;
 namespace Red55.Uma.Authz.Proxy.Uma.Api;
 
 
-internal interface IKeycloakTokenEndpoint
+internal interface IUmaTokenEndpoint
 {
     [Post ("/{relativeUrl}")]
     [QueryUriFormat (UriFormat.Unescaped)]
@@ -19,7 +19,7 @@ internal interface IKeycloakTokenEndpoint
         CancellationToken cancellationToken);
 }
 
-internal static class KeycloakTokenEndpoint
+internal static class UmaTokenEndpoint
 {
     public static async Task<bool> AuthorizeAsync(Uri endpoint,
         JwtSecurityToken accessToken, string clientId,
@@ -27,7 +27,7 @@ internal static class KeycloakTokenEndpoint
     {
         var port = endpoint.IsDefaultPort ? string.Empty : ":" + endpoint.Port;
 
-        var api = RestService.For<IKeycloakTokenEndpoint> ($"{endpoint.Scheme}://{endpoint.Host}{port}");
+        var api = RestService.For<IUmaTokenEndpoint> ($"{endpoint.Scheme}://{endpoint.Host}{port}");
         var rq = new UmaAuthorizationRequest ()
         {
             Audience = clientId
