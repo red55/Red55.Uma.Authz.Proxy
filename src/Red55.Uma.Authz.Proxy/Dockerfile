@@ -14,8 +14,8 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/Directory.Packages.props", "."]
-COPY ["src/Directory.Build.props", "."]
+COPY ["Directory.Packages.props", "Red55.Uma.Authz.Proxy.csproj/"]
+COPY ["Directory.Build.props", "Red55.Uma.Authz.Proxy.csproj/"]
 COPY ["src/Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj", "Red55.Uma.Authz.Proxy/"]
 RUN dotnet restore "./Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj"
 WORKDIR "/src/Red55.Uma.Authz.Proxy"
@@ -30,4 +30,5 @@ RUN --mount=type=bind,source=./.git,target=/src/Red55.Uma.Authz.Proxy/.git/ dotn
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD curl -f http://localhost:8080/health || exit 1
 ENTRYPOINT ["dotnet", "Red55.Uma.Authz.Proxy.dll"]
