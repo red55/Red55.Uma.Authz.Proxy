@@ -1,0 +1,65 @@
+services:  
+  kc-db:
+    image: postgres:latest
+    container_name: kc-db
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding UTF8 --locale-provider=icu --icu-locale=ru-x-icu"
+      POSTGRES_USER: "kc"
+      POSTGRES_DB: "kc"
+      POSTGRES_PASSWORD: "kc"
+    healthcheck:
+      test: "pg_isready -d kc"
+      start_period: 1m
+      start_interval: 10s
+      interval: 1m
+      timeout: 5s
+      retries: 3
+    volumes:
+      - kc_data:/var/lib/postgresql/data
+  kc:
+    image: cr.yunqi.studio/it/keycloak:latest
+    container_name: kc
+    hostname: kc.house
+    build:
+      context: .
+    pull_policy: never
+    healthcheck:
+      test: ["CMD", "true"] # curl", "--head", "-fsSk", "http://localhost:9000/health/ready
+      interval: 1m
+      timeout: 5s
+      retries: 15
+      start_interval: 10s
+      start_period: 5s
+    environment:
+      KC_DB_URL_HOST: kc-db
+      KC_DB_URL_DATABASE: kc
+      KC_DB_USERNAME: kc
+      KC_DB_PASSWORD: kc
+      # KC_HOSTNAME: https://kc.localhost
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: false
+      KC_BOOTSTRAP_ADMIN_USERNAME: kc
+      KC_BOOTSTRAP_ADMIN_PASSWORD: kc
+      KC_LOG_LEVEL: info
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: 
+    depends_on:
+      kc-db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: test.json
+        target: /opt/keycloak/data/import/test.json
+    labels:
+      traefik.enable: true  
+      traefik.http.routers.kc.entrypoints: http
+      traefik.http.routers.kc.rule: "Host(`kc`) || Host(`kc.house`)"
+      traefik.http.services.kc.loadbalancer.server.scheme: http
+      traefik.http.services.kc.loadbalancer.server.port: 8080
+
+volumes:  
+  kc_data:
+
+    
+     

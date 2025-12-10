@@ -1,0 +1,23 @@
+---
+Logging:
+  LogLevel:
+    Default: Debug
+    Microsoft.AspNetCore: Warning
+
+Serilog:
+  MinimumLevel: 
+    Default: "Debug"
+
+Kestrel:
+  Endpoints:
+    http:
+      Url: "http://+:8080"
+ReverseProxy:
+  Clusters:
+    kc:
+      HttpClient:
+        DangerousAcceptAnyServerCertificate: true
+      Destinations:
+        kc:
+          Address: http://kc:8080
+AppConfig:

@@ -1,0 +1,75 @@
+---
+Logging:
+  LogLevel:
+    Default: Information
+    Microsoft.AspNetCore: Warning
+AllowedHosts: "*"
+
+Serilog:
+  MinimumLevel: 
+    Default: "Information"
+    Override:
+      Microsoft: "Warning"
+      Microsoft.Hosting.Lifetime: "Information"
+      Microsoft.AspNetCore: "Warning"
+  Using:  
+    - Serilog.Enrichers.ClientInfo
+    - Serilog.Expressions
+    - Serilog.Exceptions
+    - Serilog.Exceptions.Refit
+  Enrich:
+    - Name: WithCorrelationId
+      Args: 
+        addValueIfHeaderAbsence: false
+    - Name: WithExceptionDetails
+      Args:
+        DefaultDestructuringEnabled: true
+      Destructurers:
+        - Name: "Serilog.Exceptions.Refit.Destructurers.ApiExceptionDestructurer, Serilog.Exceptions.Refit"
+        
+  Filter:
+    - Name: "ByExcluding"
+      Args:
+        expression: "@mt = 'An unhandled exception has occurred while executing the request.'"
+  WriteTo: 
+    - Name: Console
+      Args:
+        formatter:
+          type: "Serilog.Templates.ExpressionTemplate, Serilog.Expressions"
+          template: "[{@t:yyyy-MM-ddTHH:mm:ss} {Coalesce(CorrelationId, '0000000000000:00000000')} {@l:u3}] {@m}\n{@x}"
+
+Kestrel:
+  Endpoints:
+#    https:
+#      Url: "https://+:8443"
+#      Certificate:
+#        Path: "/home/app/localhost.crt"
+#        KeyPath: "/home/app/localhost.key"
+
+ReverseProxy:
+  Clusters:
+    kc:
+      Destinations:
+  Routes:
+    master-realm:
+      ClusterId: kc
+      Match:
+        Path: "/realms/test/protocol/openid-connect/token"
+      Transforms:
+        - RequestHeaderRemove: "Host"
+        - RequestHeader: "Host"
+          Set: "authz.house"
+        - RequestHeadersCopy: 'true'       
+        - ResponseHeadersCopy: 'true'
+        - UmaAuthzResponse: "http://kc.house:8080/realms/test/protocol/openid-connect/token"
+          azp: "gitlab"
+    keycloak_rest:
+      ClusterId: kc
+      Match:
+        Path: "{**catchall}"
+      Transforms:
+        - RequestHeadersCopy: 'true'
+
+AppConfig:
+  UmaServerBaseUrl: "http://kc.house:8080"
+  
