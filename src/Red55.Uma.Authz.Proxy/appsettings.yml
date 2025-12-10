@@ -51,25 +51,13 @@ ReverseProxy:
     kc:
       Destinations:
   Routes:
-    master-realm:
-      ClusterId: kc
-      Match:
-        Path: "/realms/test/protocol/openid-connect/token"
-      Transforms:
-        - RequestHeaderRemove: "Host"
-        - RequestHeader: "Host"
-          Set: "authz.house"
-        - RequestHeadersCopy: 'true'       
-        - ResponseHeadersCopy: 'true'
-        - UmaAuthzResponse: "http://kc.house:8080/realms/test/protocol/openid-connect/token"
-          azp: "gitlab"
     keycloak_rest:
       ClusterId: kc
       Match:
         Path: "{**catchall}"
       Transforms:
         - RequestHeadersCopy: 'true'
+        - ResponseHeadersCopy: 'true'
 
 AppConfig:
-  UmaServerBaseUrl: "http://kc.house:8080"
   

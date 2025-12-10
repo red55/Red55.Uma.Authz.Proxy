@@ -21,13 +21,20 @@
     <None Include="Models\Uma\UmaDecisionResponse.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Ensure.That" />
+    <PackageReference Include="Generator.Equals" />      
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="NetEscapades.Configuration.Yaml" />
     <PackageReference Include="Refit" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />    
+    <PackageReference Include="Serilog.Enrichers.ClientInfo" />
+    <PackageReference Include="Serilog.Enrichers.Demystifier" />
     <PackageReference Include="Serilog.Exceptions.Refit" />
+    <PackageReference Include="Serilog.Expressions" />
+    <PackageReference Include="Serilog.Sinks.Console" />      
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Yarp.ReverseProxy" />
-    <PackageReference Include="Yunqi.Common" />
-    <PackageReference Include="Yunqi.Common.Web" />
   </ItemGroup>
 
 </Project>
