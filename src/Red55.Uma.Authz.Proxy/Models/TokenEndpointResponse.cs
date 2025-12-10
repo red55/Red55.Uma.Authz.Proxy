@@ -9,12 +9,12 @@ internal partial class TokenEndpointResponseSerializerContext : JsonSerializerCo
 
 internal class TokenEndpointResponse
 {
-    public string AccessToken { get; init; }
+    public string AccessToken { get; init; } = string.Empty;
     public uint ExpiresIn { get; init; }
     public uint RefreshExpiresIn { get; init; }
-    public string RefreshToken { get; init; }
-    public string TokenType { get; init; }
-    public string NotBeforePolicy { get; init; }
-    public string SessionState { get; init; }
-    public string Scope { get; init; }
+    public string RefreshToken { get; init; } = string.Empty;
+    public string TokenType { get; init; } = string.Empty;
+    public string NotBeforePolicy { get; init; } = string.Empty;
+    public string SessionState { get; init; } = string.Empty;
+    public string Scope { get; init; } = string.Empty;
 }
