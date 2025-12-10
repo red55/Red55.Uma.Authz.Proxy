@@ -14,8 +14,8 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Directory.Packages.props", "Red55.Uma.Authz.Proxy.csproj/"]
-COPY ["Directory.Build.props", "Red55.Uma.Authz.Proxy.csproj/"]
+COPY ["Directory.Packages.props", "Red55.Uma.Authz.Proxy/"]
+COPY ["Directory.Build.props", "Red55.Uma.Authz.Proxy/"]
 COPY ["src/Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj", "Red55.Uma.Authz.Proxy/"]
 RUN dotnet restore "./Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj"
 WORKDIR "/src/Red55.Uma.Authz.Proxy"
