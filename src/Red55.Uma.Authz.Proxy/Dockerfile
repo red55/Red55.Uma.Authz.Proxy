@@ -18,6 +18,8 @@ COPY ["Directory.Packages.props", "Red55.Uma.Authz.Proxy/"]
 COPY ["Directory.Build.props", "Red55.Uma.Authz.Proxy/"]
 COPY ["src/Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj", "Red55.Uma.Authz.Proxy/"]
 RUN dotnet restore "./Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj"
+COPY --exclude=./.git/* . ./
+
 WORKDIR "/src/Red55.Uma.Authz.Proxy"
 RUN --mount=type=bind,source=./.git,target=/src/Red55.Uma.Authz.Proxy/.git/ dotnet build "./Red55.Uma.Authz.Proxy.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
