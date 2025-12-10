@@ -479,6 +479,58 @@
   "webAuthnPolicyPasswordlessExtraOrigins": [],
   "users": [
     {
+      "id": "2e64dacb-be13-4128-afca-ddb3622b4bee",
+      "username": "lkorokh",
+      "firstName": "Leonid",
+      "lastName": "Korokh",
+      "email": "lkorokh@gmail.com",
+      "emailVerified": true,
+      "enabled": true,
+      "createdTimestamp": 1765343325491,
+      "totp": false,
+      "credentials": [
+        {
+          "id": "27c12a99-e024-4a08-bb06-96a089a9f79e",
+          "type": "password",
+          "userLabel": "My password",
+          "createdDate": 1765343336684,
+          "secretData": "{\"value\":\"darcjtrouVMPNoIlUt+F4HK5S+olVclsbobRKTtzCaE=\",\"salt\":\"7vBdoqz6ZMaV1nzDuLy2DQ==\",\"additionalParameters\":{}}",
+          "credentialData": "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [ "default-roles-test" ],
+      "notBefore": 0,
+      "groups": [ "/G_Gitlab_Access" ]
+    },
+    {
+      "id": "140649e3-62c6-4c86-82f6-1b33de262487",
+      "username": "lkorokh-test",
+      "firstName": "Leonid Test",
+      "lastName": "Korokh",
+      "email": "lkorokh+test.ingacademy@gmail.com",
+      "emailVerified": false,
+      "enabled": true,
+      "createdTimestamp": 1765343346169,
+      "totp": false,
+      "credentials": [
+        {
+          "id": "a659464f-515e-42e7-bcba-96d2c25b4993",
+          "type": "password",
+          "userLabel": "My password",
+          "createdDate": 1765343356556,
+          "secretData": "{\"value\":\"qh7xaiYLfse69Vi0f0pyERhphQ5kUszrpD7wDgKokx4=\",\"salt\":\"qJOCckEQqFlgSdY3UYjg8A==\",\"additionalParameters\":{}}",
+          "credentialData": "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [ "default-roles-test" ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
       "id": "b5db4fe8-fa5b-42bb-9b97-f4233de69ab9",
       "username": "service-account-gitlab",
       "emailVerified": false,
