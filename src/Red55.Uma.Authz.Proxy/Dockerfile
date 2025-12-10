@@ -32,5 +32,5 @@ RUN --mount=type=bind,source=./.git,target=/src/Red55.Uma.Authz.Proxy/.git/ dotn
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD curl -f http://localhost:8080/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD curl -f http://localhost:8080/healthz || exit 1
 ENTRYPOINT ["dotnet", "Red55.Uma.Authz.Proxy.dll"]
