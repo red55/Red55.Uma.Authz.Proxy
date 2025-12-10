@@ -12,13 +12,16 @@ EXPOSE 8080
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y mc tshark curl && rm -rf /var/lib/apt/lists/*
+
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Directory.Packages.props", "Red55.Uma.Authz.Proxy/"]
 COPY ["Directory.Build.props", "Red55.Uma.Authz.Proxy/"]
 COPY ["src/Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj", "Red55.Uma.Authz.Proxy/"]
 RUN dotnet restore "./Red55.Uma.Authz.Proxy/Red55.Uma.Authz.Proxy.csproj"
-COPY --exclude=./.git/* . ./
+COPY --exclude=./.git/* ./src/Red55.Uma.Authz.Proxy/ ./Red55.Uma.Authz.Proxy/
 
 WORKDIR "/src/Red55.Uma.Authz.Proxy"
 RUN --mount=type=bind,source=./.git,target=/src/Red55.Uma.Authz.Proxy/.git/ dotnet build "./Red55.Uma.Authz.Proxy.csproj" -c $BUILD_CONFIGURATION -o /app/build
