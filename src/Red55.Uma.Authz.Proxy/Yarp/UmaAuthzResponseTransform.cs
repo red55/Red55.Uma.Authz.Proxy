@@ -59,7 +59,7 @@ public class UmaAuthzResponseTransform(Uri umaEndpoint,
                 return;
             }
 
-            var authzResult = await Uma.Api.KeycloakTokenEndpoint.AuthorizeAsync (endpoint: umaEndpoint,
+            var authzResult = await Uma.Api.UmaTokenEndpoint.AuthorizeAsync (endpoint: umaEndpoint,
                 accessToken: t,
                 clientId: clientId,
                 context.CancellationToken);

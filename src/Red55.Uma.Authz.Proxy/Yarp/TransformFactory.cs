@@ -27,13 +27,14 @@ public class TransformFactory(IOptions<AppConfig> appConfig, ILoggerFactory logg
             _ = transformValues.TryGetValue ("azp", out azp);
 
             var endpointUri = new Uri (umaEndpoint, UriKind.RelativeOrAbsolute);
-            if (string.IsNullOrEmpty (endpointUri.Host))
+            if (!endpointUri.IsAbsoluteUri
+                || string.IsNullOrEmpty (endpointUri.Host))
             {
                 endpointUri = new Uri (new Uri (Config.UmaServerBaseUrl), endpointUri);
             }
 
             context.ResponseTransforms.Add (new UmaAuthzResponseTransform (endpointUri,
-                azp,
+                azp ?? string.Empty,
                 LoggerFactory.CreateLogger<UmaAuthzResponseTransform> ()));
             return true;
         }
