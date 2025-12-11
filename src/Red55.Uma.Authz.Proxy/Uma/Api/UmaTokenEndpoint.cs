@@ -8,33 +8,42 @@ using Refit;
 namespace Red55.Uma.Authz.Proxy.Uma.Api;
 
 
-internal interface IUmaTokenEndpoint
+internal partial interface IUmaTokenEndpoint
 {
     [Post ("/{relativeUrl}")]
     [QueryUriFormat (UriFormat.Unescaped)]
-    [Headers ("Content-Type: application/x-www-form-urlencoded", "Host: authz.house")]
-    Task<ApiResponse<UmaDecisionResponse>> GetRptTokenAsync(string relativeUrl,
+    [Headers ("Content-Type: application/x-www-form-urlencoded")] //, "X-Forwarded-Proto: http"
+    Task<ApiResponse<UmaDecisionResponse>> GetUmaTokenAsync(
+        [Header ("X-Forwarded-Proto")] string scheme,
+        [Header ("Host")] string host,
+        string relativeUrl,        
         [Authorize ("Bearer")] string accessToken,
         [Body] string req,
         CancellationToken cancellationToken);
 }
 
-internal static class UmaTokenEndpoint
+internal class UmaTokenEndpoint(IUmaTokenEndpoint api)
 {
-    public static async Task<bool> AuthorizeAsync(Uri endpoint,
+    public async Task<bool> AuthorizeAsync(Uri endPoint, 
+        string schemeHeader,
+        string hostHeader,
         JwtSecurityToken accessToken, string clientId,
         CancellationToken cancellationToken)
     {
-        var port = endpoint.IsDefaultPort ? string.Empty : ":" + endpoint.Port;
+        // api.BaseAddress = new Uri($"{endPoint.Scheme}://{endPoint.Host}");
+        // var port = endpoint.IsDefaultPort ? string.Empty : ":" + endpoint.Port;        
+        // var api = RestService.For<IUmaTokenEndpoint> ($"{endpoint.Scheme}://{endpoint.Host}{port}");
 
-        var api = RestService.For<IUmaTokenEndpoint> ($"{endpoint.Scheme}://{endpoint.Host}{port}");
         var rq = new UmaAuthorizationRequest ()
         {
             Audience = clientId
         };
 
         var b = $"grant_type={rq.GrantType}&response_mode={rq.ResponseMode}&audience={rq.Audience}";
-        var r = await api.GetRptTokenAsync (endpoint.PathAndQuery[1..], accessToken.RawData, b, cancellationToken);
+        var r = await api.GetUmaTokenAsync (
+            schemeHeader,
+            hostHeader,
+            endPoint.PathAndQuery[1..], accessToken.RawData, b, cancellationToken);
 
         return r.IsSuccessful switch
         {

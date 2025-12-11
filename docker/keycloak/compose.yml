@@ -40,7 +40,7 @@ services:
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: false
       KC_BOOTSTRAP_ADMIN_USERNAME: kc
       KC_BOOTSTRAP_ADMIN_PASSWORD: kc
-      KC_LOG_LEVEL: info
+      KC_LOG_LEVEL: debug
       KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: 

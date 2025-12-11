@@ -5,16 +5,19 @@ using System.Text.Json;
 
 using EnsureThat;
 
+using Red55.Uma.Authz.Proxy.Extensions;
 using Red55.Uma.Authz.Proxy.Helpers;
+using Red55.Uma.Authz.Proxy.Uma.Api;
 
 using Yarp.ReverseProxy.Transforms;
 namespace Red55.Uma.Authz.Proxy.Yarp;
 
-public class UmaAuthzResponseTransform(Uri umaEndpoint,
-    string clientId,
+internal class UmaAuthzResponseTransform(UmaTokenEndpoint umaEndpoint,
     ILogger<UmaAuthzResponseTransform> logger) : ResponseTransform
 {
     private ILogger Log { get; } = logger;
+    public string ClientId {get; set;}
+    public Uri EndPoint { get; set; }
 
     public override async ValueTask ApplyAsync(ResponseTransformContext context)
     {
@@ -53,16 +56,19 @@ public class UmaAuthzResponseTransform(Uri umaEndpoint,
             var h = new JwtSecurityTokenHandler ();
             var t = h.ReadJwtToken (r.AccessToken);
             var azp = t.Claims.FirstOrDefault (c => c.Type.Equals ("azp", StringComparison.OrdinalIgnoreCase));
-            if (!azp?.Value.Equals (clientId) ?? true)
+            if (!azp?.Value.Equals (ClientId) ?? true)
             {
-                Log.LogWarning ("Skip token as azp not ours. {TokenAzp}:{ClientId}", azp, clientId);
+                Log.LogWarning ("Skip token as azp not ours. {TokenAzp}:{ClientId}", azp, ClientId);
                 return;
-            }
+            }                        
+            var hostHeader = context.HttpContext.Request.Headers.Host.ToString ();
+            var forwardedProto = context.HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault () 
+                ?? EndPoint.Scheme;
 
-            var authzResult = await Uma.Api.UmaTokenEndpoint.AuthorizeAsync (endpoint: umaEndpoint,
-                accessToken: t,
-                clientId: clientId,
-                context.CancellationToken);
+            var authzResult = await umaEndpoint.AuthorizeAsync (EndPoint,
+                forwardedProto,
+                hostHeader,
+                t, ClientId, context.CancellationToken);
 
             if (authzResult)
             {

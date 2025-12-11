@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="NetEscapades.Configuration.Yaml" />
     <PackageReference Include="Refit" />
+    <PackageReference Include="Refit.HttpClientFactory" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.AspNetCore" />    
     <PackageReference Include="Serilog.Enrichers.ClientInfo" />

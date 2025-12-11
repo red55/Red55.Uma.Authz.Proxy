@@ -19,19 +19,21 @@ ReverseProxy:
         DangerousAcceptAnyServerCertificate: true
       Destinations:
         kc:
-          Address: http://kc:8080
+          Address: https://kc:8443
   Routes:
     test-realm:
       ClusterId: kc
       Match:
         Path: "/realms/test/protocol/openid-connect/token"
       Transforms:
+        - RequestHeadersCopy: 'true'
         - RequestHeaderRemove: "Host"
         - RequestHeader: "Host"
           Set: "authz.house"
-        - RequestHeadersCopy: 'true'       
         - ResponseHeadersCopy: 'true'
         - UmaAuthzResponse: "/realms/test/protocol/openid-connect/token"
           azp: "gitlab"
 AppConfig:
-  UmaServerBaseUrl: "http://kc.house:8080"
+  UmaServerBaseUrl: "https://kc:8443"
+  InsecureSkipTlsVerify: true
+
