@@ -9,7 +9,9 @@ public partial class ValidateAppConfig : IValidateOptions<AppConfig> { }
 
 public class AppConfig
 {
+    static readonly Uri EmtpyUri = new ("about:blank", UriKind.Absolute);
     [Required]
-    public string UmaServerBaseUrl { get; set; } = string.Empty;
+    public Uri UmaServerBaseUrl { get; set; } = EmtpyUri;
+    public bool InsecureSkipTlsVerify { get; set; } = false;
 }
 

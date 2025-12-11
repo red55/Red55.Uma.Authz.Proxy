@@ -6,6 +6,10 @@ using Microsoft.Extensions.Options;
 
 using Red55.Uma.Authz.Proxy.Middlewares;
 using Red55.Uma.Authz.Proxy.Models;
+using Red55.Uma.Authz.Proxy.Uma.Api;
+using Red55.Uma.Authz.Proxy.Yarp;
+
+using Refit;
 
 using Serilog;
 using Serilog.Exceptions;
@@ -91,8 +95,22 @@ _ = builder.Services.AddSerilog ((services, configuration) =>
 }
 );
 
+var cfg = LoadConfigFromSection<AppConfig, ValidateAppConfig> (builder, nameof (AppConfig));
 
-_ = LoadConfigFromSection<AppConfig, ValidateAppConfig> (builder, nameof (AppConfig));
+builder.Services.AddRefitClient<IUmaTokenEndpoint>()
+    .ConfigureHttpClient ( c => c.BaseAddress = cfg.UmaServerBaseUrl)
+    .ConfigurePrimaryHttpMessageHandler(() => 
+        cfg.InsecureSkipTlsVerify ? 
+        new HttpClientHandler ()
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+
+
+        } : new HttpClientHandler ());
+
+builder.Services
+    .AddTransient<UmaTokenEndpoint>()
+    .AddTransient<UmaAuthzResponseTransform>();
 
 builder.Services.AddReverseProxy ()
     .AddTransformFactory<Red55.Uma.Authz.Proxy.Yarp.TransformFactory> ()

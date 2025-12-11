@@ -1,12 +1,15 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using Red55.Uma.Authz.Proxy.Models;
+using Red55.Uma.Authz.Proxy.Uma.Api;
 
 using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace Red55.Uma.Authz.Proxy.Yarp;
 
-public class TransformFactory(IOptions<AppConfig> appConfig, ILoggerFactory logger) : ITransformFactory
+public class TransformFactory(IOptions<AppConfig> appConfig, 
+    ILoggerFactory logger, IServiceProvider serviceProvider) : ITransformFactory
 {
     static readonly string UmaAuthzResponseTransform_Key =
         nameof (UmaAuthzResponseTransform).Replace ("Transform", "");
@@ -30,12 +33,14 @@ public class TransformFactory(IOptions<AppConfig> appConfig, ILoggerFactory logg
             if (!endpointUri.IsAbsoluteUri
                 || string.IsNullOrEmpty (endpointUri.Host))
             {
-                endpointUri = new Uri (new Uri (Config.UmaServerBaseUrl), endpointUri);
+                endpointUri = new Uri (Config.UmaServerBaseUrl, endpointUri);
             }
 
-            context.ResponseTransforms.Add (new UmaAuthzResponseTransform (endpointUri,
-                azp ?? string.Empty,
-                LoggerFactory.CreateLogger<UmaAuthzResponseTransform> ()));
+            var ep = serviceProvider.GetRequiredService<UmaAuthzResponseTransform> ();
+            ep.ClientId = azp ?? string.Empty;
+            ep.EndPoint = endpointUri;
+
+            context.ResponseTransforms.Add (ep);
             return true;
         }
         return false;
