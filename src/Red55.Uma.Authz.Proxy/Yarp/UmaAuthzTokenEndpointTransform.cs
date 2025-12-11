@@ -12,8 +12,8 @@ using Red55.Uma.Authz.Proxy.Uma.Api;
 using Yarp.ReverseProxy.Transforms;
 namespace Red55.Uma.Authz.Proxy.Yarp;
 
-internal class UmaAuthzResponseTransform(UmaTokenEndpoint umaEndpoint,
-    ILogger<UmaAuthzResponseTransform> logger) : ResponseTransform
+internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
+    ILogger<UmaAuthzTokenEndpointTransform> logger) : ResponseTransform
 {
     private ILogger Log { get; } = logger;
     public string ClientId {get; set;}

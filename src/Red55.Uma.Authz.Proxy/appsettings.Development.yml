@@ -31,8 +31,8 @@ ReverseProxy:
         - RequestHeader: "Host"
           Set: "authz.house"
         - ResponseHeadersCopy: 'true'
-        - UmaAuthzResponse: "/realms/test/protocol/openid-connect/token"
-          azp: "gitlab"
+        - UmaAuthzTokenEndpoint: "/realms/test/protocol/openid-connect/token"
+          azp: "gitlab"        
 AppConfig:
   UmaServerBaseUrl: "https://kc:8443"
   InsecureSkipTlsVerify: true

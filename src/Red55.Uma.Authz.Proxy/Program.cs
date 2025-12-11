@@ -110,7 +110,8 @@ builder.Services.AddRefitClient<IUmaTokenEndpoint>()
 
 builder.Services
     .AddTransient<UmaTokenEndpoint>()
-    .AddTransient<UmaAuthzResponseTransform>();
+    .AddTransient<UmaAuthzTokenEndpointTransform>()
+    .AddTransient<LogReqHeadersTransform>();
 
 builder.Services.AddReverseProxy ()
     .AddTransformFactory<Red55.Uma.Authz.Proxy.Yarp.TransformFactory> ()

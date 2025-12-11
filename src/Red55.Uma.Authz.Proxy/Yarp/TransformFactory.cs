@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Red55.Uma.Authz.Proxy.Models;
@@ -9,17 +10,48 @@ using Yarp.ReverseProxy.Transforms.Builder;
 namespace Red55.Uma.Authz.Proxy.Yarp;
 
 public class TransformFactory(IOptions<AppConfig> appConfig, 
-    ILoggerFactory logger, IServiceProvider serviceProvider) : ITransformFactory
+    ILoggerFactory loggerFactory, IServiceProvider serviceProvider,
+    ILogger<TransformFactory> logger) : ITransformFactory
 {
     static readonly string UmaAuthzResponseTransform_Key =
-        nameof (UmaAuthzResponseTransform).Replace ("Transform", "");
-    ILoggerFactory LoggerFactory => logger;
+        nameof (UmaAuthzTokenEndpointTransform).Replace ("Transform", "");
+    static readonly string LogReqHeadersTransform_Key =
+        nameof (LogReqHeadersTransform).Replace ("Transform", "");
+
+    ILoggerFactory LoggerFactory => loggerFactory;
+    ILogger Log => logger;
 
     AppConfig Config => appConfig.Value;
 
     public bool Build(TransformBuilderContext context, IReadOnlyDictionary<string, string> transformValues)
     {
-        if (transformValues.TryGetValue (UmaAuthzResponseTransform_Key, out var umaEndpoint))
+        if (transformValues.TryGetValue (LogReqHeadersTransform_Key, out var logHeadersValue))
+        {
+            var logLevel = LogLevel.Debug;
+
+            if (!string.IsNullOrEmpty (logHeadersValue))
+            {
+                _ = Enum.TryParse (logHeadersValue, out logLevel);                
+            }
+
+            Log.LogWarning ("Using LogLevel: '{LogLevel}' for LogReqHeadersTransform.",
+                logHeadersValue);
+
+            string [] headerNames = [];
+            if (transformValues.TryGetValue("Headers", out var names))
+            {
+                headerNames = names.Split (',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            }
+
+            var logTransform = serviceProvider.GetRequiredService<LogReqHeadersTransform> ();
+            logTransform.LogLevel = logLevel;
+            logTransform.Headers = headerNames;
+
+            context.RequestTransforms.Add (logTransform);
+            return true;
+
+        }
+        else if (transformValues.TryGetValue (UmaAuthzResponseTransform_Key, out var umaEndpoint))
         {
             if (string.IsNullOrEmpty (umaEndpoint))
             {
@@ -36,7 +68,7 @@ public class TransformFactory(IOptions<AppConfig> appConfig,
                 endpointUri = new Uri (Config.UmaServerBaseUrl, endpointUri);
             }
 
-            var ep = serviceProvider.GetRequiredService<UmaAuthzResponseTransform> ();
+            var ep = serviceProvider.GetRequiredService<UmaAuthzTokenEndpointTransform> ();
             ep.ClientId = azp ?? string.Empty;
             ep.EndPoint = endpointUri;
 
