@@ -44,19 +44,17 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
         }
         var bw = new ArrayBufferWriter<byte> ();
         using var w = new Utf8JsonWriter (bw);
+        Stream bodyStream = await context.ProxyResponse!.Content.ReadAsStreamAsync (context.CancellationToken);
+        var r = await JsonSerialization.DeserializeAsync<Models.TokenEndpointResponse> (bodyStream,
+        context.CancellationToken);
+        if (r is null || string.IsNullOrWhiteSpace (r.AccessToken))
+        {
+            Log.LogWarning ("Skip Token Endpoint response as no access token present");
+            return;
+        }
+
         try
         {
-
-            Stream bodyStream = await context.ProxyResponse!.Content.ReadAsStreamAsync (context.CancellationToken);
-
-            var r = await JsonSerialization.DeserializeAsync<Models.TokenEndpointResponse> (bodyStream,
-                context.CancellationToken);
-            if (r is null || string.IsNullOrWhiteSpace (r.AccessToken))
-            {
-                Log.LogWarning ("Skip Token Endpoint response as no access token present");
-                return;
-            }
-
             var h = new JwtSecurityTokenHandler ();
             var t = h.ReadJwtToken (r.AccessToken);
             var azp = t.Claims.FirstOrDefault (c => c.Type.Equals ("azp", StringComparison.OrdinalIgnoreCase));
@@ -69,12 +67,13 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
             var authzResult = await umaEndpoint.AuthorizeAsync (EndPoint,
                 forwardedProto ?? EndPoint.Scheme,
                 hostHeader,
-                t, ClientId, context.CancellationToken);
+                t, ClientId,
+                context.CancellationToken);
 
             if (authzResult)
             {
                 context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK;
-                JsonSerialization.Serialize (r, w);
+                return;
             }
             else
             {
@@ -87,12 +86,8 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
                 },
                 w);
 
-
+                return;
             }
-            await w.FlushAsync ();
-            context.HttpContext.Response.ContentLength = bw.WrittenCount;
-
-
         }
         catch (Exception e)
         {
@@ -101,6 +96,29 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
         }
         finally
         {
+            await w.FlushAsync (context.CancellationToken);
+
+            if (bw.WrittenCount == 0)
+            {
+                if (r is null) // failed to decode Token endpoint response
+                {
+                    Log.LogError("Failed to decode token endpoint response");
+                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    JsonSerialization.Serialize (new Models.OAuthErrorResponse
+                    {
+                        Error = "internal_error",
+                        ErrorDescription = "Failed to decode Token endpoint response"
+                    },
+                    w);
+                    await w.FlushAsync (context.CancellationToken);
+                }
+                else
+                {
+                    JsonSerialization.Serialize (r, w);                    
+                }
+            } 
+            
+            context.HttpContext.Response.ContentLength = bw.WrittenCount;
             context.HttpContext.Response.BodyWriter.Write (bw.WrittenSpan);
         }
 

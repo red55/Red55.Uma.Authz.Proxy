@@ -58,7 +58,7 @@ ReverseProxy:
       Transforms:
         - RequestHeadersCopy: 'true'
         - ResponseHeadersCopy: 'true'
-        - LogReqHeaders: 'Information'
+        - LogReqHeaders: 'Debug'
 
 AppConfig:
   
