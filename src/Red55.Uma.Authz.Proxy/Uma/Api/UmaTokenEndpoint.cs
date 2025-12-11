@@ -22,8 +22,11 @@ internal partial interface IUmaTokenEndpoint
         CancellationToken cancellationToken);
 }
 
-internal class UmaTokenEndpoint(IUmaTokenEndpoint api)
+internal class UmaTokenEndpoint(IUmaTokenEndpoint api, ILogger<UmaTokenEndpoint> logger)
 {
+    IUmaTokenEndpoint Api => api;
+    ILogger Log => logger;
+
     public async Task<bool> AuthorizeAsync(Uri endPoint, 
         string schemeHeader,
         string hostHeader,
@@ -40,7 +43,9 @@ internal class UmaTokenEndpoint(IUmaTokenEndpoint api)
         };
 
         var b = $"grant_type={rq.GrantType}&response_mode={rq.ResponseMode}&audience={rq.Audience}";
-        var r = await api.GetUmaTokenAsync (
+        Log.LogDebug ("Sending UMA Token Request with host {Host} and proto {Proto}: {Request}", 
+            hostHeader, schemeHeader, b);
+        var r = await Api.GetUmaTokenAsync (
             schemeHeader,
             hostHeader,
             endPoint.PathAndQuery[1..], accessToken.RawData, b, cancellationToken);
