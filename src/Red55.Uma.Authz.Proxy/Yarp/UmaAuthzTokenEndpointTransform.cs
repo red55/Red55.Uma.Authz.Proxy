@@ -53,6 +53,19 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
         
         try
         {
+            if (r is null || string.IsNullOrEmpty(r.AccessToken))
+            {
+                Log.LogError ("Failed to decode token endpoint response");
+                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                JsonSerialization.Serialize (new Models.OAuthErrorResponse
+                {
+                    Error = "internal_error",
+                    ErrorDescription = "Failed to decode Token endpoint response"
+                },
+                w);
+                return;
+            }
+
             var h = new JwtSecurityTokenHandler ();
             var t = h.ReadJwtToken (r.AccessToken);
             var azp = t.Claims.FirstOrDefault (c => c.Type.Equals ("azp", StringComparison.OrdinalIgnoreCase));
@@ -96,33 +109,20 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
         {
 
             await w.FlushAsync (context.CancellationToken);
-
-            if (bw.WrittenCount == 0)
+            
+            if (bw.WrittenCount > 0)
             {
-                if (r is null) // failed to decode Token endpoint response
-                {
-                    Log.LogError("Failed to decode token endpoint response");
-                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    JsonSerialization.Serialize (new Models.OAuthErrorResponse
-                    {
-                        Error = "internal_error",
-                        ErrorDescription = "Failed to decode Token endpoint response"
-                    },
-                    w);
-
-                    await w.FlushAsync (context.CancellationToken);
-                    
-                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    context.HttpContext.Response.ContentLength = bw.WrittenCount;
-                    context.HttpContext.Response.ContentType = "application/json";
-                    context.HttpContext.Response.BodyWriter.Write (bw.WrittenSpan);
-                }
-                else
-                {
-                    bodyStream.Position = 0;
-                    await bodyStream.CopyToAsync (context.HttpContext.Response.Body, context.CancellationToken);
-                }
-            }                         
+                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.HttpContext.Response.ContentLength = bw.WrittenCount;
+                context.HttpContext.Response.ContentType = "application/json";
+                context.HttpContext.Response.BodyWriter.Write (bw.WrittenSpan);
+            }
+            else
+            {
+                bodyStream.Position = 0;
+                await bodyStream.CopyToAsync (context.HttpContext.Response.Body, context.CancellationToken);
+            }
+            
         }
 
     }
