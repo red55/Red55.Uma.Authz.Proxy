@@ -28,6 +28,10 @@ internal class UmaAuthzResponseTransform(UmaTokenEndpoint umaEndpoint,
         EnsureArg.IsNotNull (context.HttpContext.Response.ContentType,
             nameof (context.HttpContext.Response.ContentType));
 
+        var hostHeader = context.HttpContext.Request.Headers.Host.ToString ();
+        var forwardedProto = context.HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault ();
+
+        Log.LogDebug ("Request was sent with host: {Host}, proto: {Proto}", hostHeader, forwardedProto);
         if (!context.ProxyResponse.IsSuccessStatusCode)
         {
             return;
@@ -61,9 +65,6 @@ internal class UmaAuthzResponseTransform(UmaTokenEndpoint umaEndpoint,
                 Log.LogWarning ("Skip token as azp not ours. {TokenAzp}:{ClientId}", azp, ClientId);
                 return;
             }                        
-            var hostHeader = context.HttpContext.Request.Headers.Host.ToString ();
-            var forwardedProto = context.HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault ();
-            Log.LogDebug ("Request was sent with host: {Host}, proto: {Proto}", hostHeader, forwardedProto);
 
             var authzResult = await umaEndpoint.AuthorizeAsync (EndPoint,
                 forwardedProto ?? EndPoint.Scheme,
