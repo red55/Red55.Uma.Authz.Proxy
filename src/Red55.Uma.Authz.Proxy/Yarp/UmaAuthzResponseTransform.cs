@@ -62,11 +62,11 @@ internal class UmaAuthzResponseTransform(UmaTokenEndpoint umaEndpoint,
                 return;
             }                        
             var hostHeader = context.HttpContext.Request.Headers.Host.ToString ();
-            var forwardedProto = context.HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault () 
-                ?? EndPoint.Scheme;
+            var forwardedProto = context.HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault ();
+            Log.LogDebug ("Request was sent with host: {Host}, proto: {Proto}", hostHeader, forwardedProto);
 
             var authzResult = await umaEndpoint.AuthorizeAsync (EndPoint,
-                forwardedProto,
+                forwardedProto ?? EndPoint.Scheme,
                 hostHeader,
                 t, ClientId, context.CancellationToken);
 
