@@ -16,7 +16,7 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
     ILogger<UmaAuthzTokenEndpointTransform> logger) : ResponseTransform
 {
     private ILogger Log { get; } = logger;
-    public string ClientId {get; set;}
+    public IReadOnlySet<string> ClientId {get; set;}
     public Uri EndPoint { get; set; }
 
     public override async ValueTask ApplyAsync(ResponseTransformContext context)
@@ -68,8 +68,8 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
 
             var h = new JwtSecurityTokenHandler ();
             var t = h.ReadJwtToken (r.AccessToken);
-            var azp = t.Claims.FirstOrDefault (c => c.Type.Equals ("azp", StringComparison.OrdinalIgnoreCase));
-            if (!azp?.Value.Equals (ClientId) ?? true)
+            var azp = t.Claims.FirstOrDefault (c => c.Type.Equals ("azp", StringComparison.OrdinalIgnoreCase))?.Value;
+            if (string.IsNullOrEmpty(azp) || !ClientId.Contains(azp))
             {
                 Log.LogWarning ("Skip token as azp not ours. {TokenAzp}:{ClientId}", azp, ClientId);
                 return;
@@ -78,7 +78,7 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
             var authzResult = await umaEndpoint.AuthorizeAsync (EndPoint,
                 forwardedProto ?? EndPoint.Scheme,
                 hostHeader,
-                t, ClientId,
+                t, azp,
                 context.CancellationToken);
 
             if (authzResult)
@@ -88,7 +88,7 @@ internal class UmaAuthzTokenEndpointTransform(UmaTokenEndpoint umaEndpoint,
             }
             else
             {
-                Log.LogWarning ("UMA authorization failed for token with azp {TokenAzp}", azp?.Value);
+                Log.LogWarning ("UMA authorization failed for token with azp {TokenAzp}", azp);
                 context.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 JsonSerialization.Serialize (new Models.OAuthErrorResponse
                 {

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Collections.Frozen;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -58,8 +60,12 @@ public class TransformFactory(IOptions<AppConfig> appConfig,
                 throw new Exceptions.InvalidTransformConfigException ("UMA endpoint must be provided for UmaAuthzResponseTransform.");
             }
 
-            string azp = string.Empty;
-            _ = transformValues.TryGetValue ("azp", out azp);
+            string[] azps = [];
+
+            if (transformValues.TryGetValue ("azp", out var azp))
+            {
+                azps = azp.Split (',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            }
 
             var endpointUri = new Uri (umaEndpoint, UriKind.RelativeOrAbsolute);
             if (!endpointUri.IsAbsoluteUri
@@ -69,7 +75,7 @@ public class TransformFactory(IOptions<AppConfig> appConfig,
             }
 
             var ep = serviceProvider.GetRequiredService<UmaAuthzTokenEndpointTransform> ();
-            ep.ClientId = azp ?? string.Empty;
+            ep.ClientId = azps.ToFrozenSet();
             ep.EndPoint = endpointUri;
 
             context.ResponseTransforms.Add (ep);
